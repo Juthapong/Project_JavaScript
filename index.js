@@ -84,7 +84,7 @@ app.put('/players/:id', (req, res) => {
         player
           .update(req.body)
           .then(() => {
-            res.send(book);
+            res.send(player);
           })
           .catch((err) => {
             res.status(500).send(err);
