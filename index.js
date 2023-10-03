@@ -1,8 +1,3 @@
-// Description: Node Express REST API with Sequelize and SQLite CRUD Book
-// npm install express sequelize sqlite3
-// Run this file with node SequlizeSQLiteCRUDBook.js
-// Test with Postman
-
 const express = require('express');
 const Sequelize = require('sequelize');
 const app = express();
@@ -10,18 +5,18 @@ const app = express();
 // parse incoming requests
 app.use(express.json());
 
+
+const router = express.Router();
+const sqlite3 = require('sqlite3').verbose();
+
+const db = new sqlite3.Database('./Database/SQTeamFootball.sqlite');
 // create a connection to the database
 const sequelize = new Sequelize('database', 'username', 'password', {
   host: 'localhost',
   dialect: 'sqlite',
-  storage: './Database/SQPlayers.sqlite',
+  storage: './Database/SQTeamFootball.sqlite',
 });
-const sequelize2 = new Sequelize('database', 'username', 'password', {
-  host: 'localhost',
-  dialect: 'sqlite',
-  storage: './Database/SQTeams.sqlite',
-});
-// define the Book model
+
 const Player = sequelize.define('player', {
   id: {
     type: Sequelize.INTEGER,
@@ -32,13 +27,43 @@ const Player = sequelize.define('player', {
     type: Sequelize.STRING,
     allowNull: false,
   },
-  score: {
+});
+
+const Team = sequelize.define('team', {
+  id: {
+    type: Sequelize.INTEGER,
+    autoIncrement: true,
+    primaryKey: true,
+  },
+  teamname: {
     type: Sequelize.STRING,
     allowNull: false,
   },
 });
 
-// create the books table if it doesn't exist
+const Score = sequelize.define('score', {
+  id: {
+    type: Sequelize.INTEGER,
+    autoIncrement: true,
+    primaryKey: true,
+  },
+  playerId: {
+    type: Sequelize.INTEGER,
+    allowNull: false,
+  },
+  teamId: {
+    type: Sequelize.INTEGER,
+    allowNull: false,
+  },
+  score: {
+    type: Sequelize.INTEGER,
+    allowNull: false,
+  },
+});
+
+Player.belongsToMany(Team, { through: Score, foreignKey: 'playerId' });
+Team.belongsToMany(Player, { through: Score, foreignKey: 'teamId' });
+
 sequelize.sync();
 
 // route to get all books
@@ -57,7 +82,7 @@ app.get('/players/:id', (req, res) => {
   Player.findByPk(req.params.id)
     .then((player) => {
       if (!player) {
-        res.status(404).send('Player not found');
+        res.status(404).send('Palyer not found');
       } else {
         res.json(player);
       }
@@ -66,10 +91,11 @@ app.get('/players/:id', (req, res) => {
       res.status(500).send(err);
     });
 });
-
-// route to create a new book
+// Create a new player
 app.post('/players', (req, res) => {
-  Player.create(req.body)
+  const { nameplayer } = req.body;
+
+  Player.create({ nameplayer })
     .then((player) => {
       res.send(player);
     })
@@ -78,15 +104,18 @@ app.post('/players', (req, res) => {
     });
 });
 
-// route to update a book
+// Update a player
 app.put('/players/:id', (req, res) => {
-  Player.findByPk(req.params.id)
+  const { nameplayer } = req.body;
+  const playerId = req.params.id;
+
+  Player.findByPk(playerId)
     .then((player) => {
       if (!player) {
         res.status(404).send('Player not found');
       } else {
         player
-          .update(req.body)
+          .update({ nameplayer })
           .then(() => {
             res.send(player);
           })
@@ -100,9 +129,11 @@ app.put('/players/:id', (req, res) => {
     });
 });
 
-// route to delete a book
+// Delete a player
 app.delete('/players/:id', (req, res) => {
-  Player.findByPk(req.params.id)
+  const playerId = req.params.id;
+
+  Player.findByPk(playerId)
     .then((player) => {
       if (!player) {
         res.status(404).send('Player not found');
@@ -121,23 +152,6 @@ app.delete('/players/:id', (req, res) => {
       res.status(500).send(err);
     });
 });
-const Team = sequelize2.define('team', {
-  id: {
-    type: Sequelize.INTEGER,
-    autoIncrement: true,
-    primaryKey: true,
-  },
-  teamname: {
-    type: Sequelize.STRING,
-    allowNull: false,
-  },
-  
-});
-
-// Create the teams table if it doesn't exist
-sequelize2.sync();
-
-// Route to get all teams
 app.get('/teams', (req, res) => {
   Team.findAll()
     .then((teams) => {
@@ -148,12 +162,12 @@ app.get('/teams', (req, res) => {
     });
 });
 
-// Route to get a team by id
+// route to get a book by id a
 app.get('/teams/:id', (req, res) => {
   Team.findByPk(req.params.id)
     .then((team) => {
       if (!team) {
-        res.status(404).send('Team not found');
+        res.status(404).send('Palyer not found');
       } else {
         res.json(team);
       }
@@ -162,10 +176,11 @@ app.get('/teams/:id', (req, res) => {
       res.status(500).send(err);
     });
 });
-
-// Route to create a new team
+// Create a new team
 app.post('/teams', (req, res) => {
-  Team.create(req.body)
+  const { teamname } = req.body;
+
+  Team.create({ teamname })
     .then((team) => {
       res.send(team);
     })
@@ -174,15 +189,18 @@ app.post('/teams', (req, res) => {
     });
 });
 
-// Route to update a team
+// Update a team
 app.put('/teams/:id', (req, res) => {
-  Team.findByPk(req.params.id)
+  const { teamname } = req.body;
+  const teamId = req.params.id;
+
+  Team.findByPk(teamId)
     .then((team) => {
       if (!team) {
         res.status(404).send('Team not found');
       } else {
         team
-          .update(req.body)
+          .update({ teamname })
           .then(() => {
             res.send(team);
           })
@@ -196,9 +214,11 @@ app.put('/teams/:id', (req, res) => {
     });
 });
 
-// Route to delete a team
+// Delete a team
 app.delete('/teams/:id', (req, res) => {
-  Team.findByPk(req.params.id)
+  const teamId = req.params.id;
+
+  Team.findByPk(teamId)
     .then((team) => {
       if (!team) {
         res.status(404).send('Team not found');
@@ -217,7 +237,105 @@ app.delete('/teams/:id', (req, res) => {
       res.status(500).send(err);
     });
 });
+// route to get all books
+app.get('/scores', (req, res) => {
+  Score.findAll()
+    .then((scores) => {
+      res.json(scores);
+    })
+    .catch((err) => {
+      res.status(500).send(err);
+    });
+});
 
-// start the server
+// route to get a book by id a
+app.get('/scores/:id', (req, res) => {
+  Score.findByPk(req.params.id)
+    .then((score) => {
+      if (!score) {
+        res.status(404).send('Score not found');
+      } else {
+        res.json(score);
+      }
+    })
+    .catch((err) => {
+      res.status(500).send(err);
+    });
+});
+// Create a new score
+app.post('/scores', (req, res) => {
+  const { playerId, teamId, score } = req.body;
+
+  Score.create({ playerId, teamId, score })
+    .then((score) => {
+      res.send(score);
+    })
+    .catch((err) => {
+      res.status(500).send(err);
+    });
+});
+
+// Update a score
+app.put('/scores/:id', (req, res) => {
+  const { playerId, teamId, score } = req.body;
+  const scoreId = req.params.id;
+
+  Score.findByPk(scoreId)
+    .then((score) => {
+      if (!score) {
+        res.status(404).send('Score not found');
+      } else {
+        score
+          .update({ playerId, teamId, score })
+          .then(() => {
+            res.send(score);
+          })
+          .catch((err) => {
+            res.status(500).send(err);
+          });
+      }
+    })
+    .catch((err) => {
+      res.status(500).send(err);
+    });
+});
+
+// Delete a score
+app.delete('/scores/:id', (req, res) => {
+  const scoreId = req.params.id;
+
+  Score.findByPk(scoreId)
+    .then((score) => {
+      if (!score) {
+        res.status(404).send('Score not found');
+      } else {
+        score
+          .destroy()
+          .then(() => {
+            res.send({});
+          })
+          .catch((err) => {
+            res.status(500).send(err);
+          });
+      }
+    })
+    .catch((err) => {
+      res.status(500).send(err);
+    });
+});
+router.get('/getPlayers', (req, res) => {
+  // Fetch player IDs from the database
+  db.all('SELECT id FROM players', (err, rows) => {
+    if (err) {
+      console.error('Error fetching player IDs:', err);
+      res.status(500).json({ error: 'Internal Server Error' });
+    } else {
+      const playerIds = rows.map(row => ({ id: row.id }));
+      res.json(playerIds);
+    }
+  });
+});
+
+module.exports = router;
 const port = process.env.PORT || 3000;
 app.listen(port, () => console.log(`Listening on port ${port}...`));
