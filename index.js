@@ -6,10 +6,24 @@ const app = express();
 app.use(express.json());
 
 
-const router = express.Router();
+// const router = express.Router();
 const sqlite3 = require('sqlite3').verbose();
 
-const db = new sqlite3.Database('./Database/SQTeamFootball.sqlite');
+// const app = express();
+const db = new sqlite3.Database('path/to/your/database.sqlite');
+
+// app.get('/players', (req, res) => {
+//   db.all('SELECT playerId FROM players', [], (err, rows) => {
+//     if (err) {
+//       throw err;
+//     }
+//     const playerIds = rows.map(row => row.playerId);
+//     res.json(playerIds);
+//   });
+// });
+
+
+// const db = new sqlite3.Database('./Database/SQTeamFootball.sqlite');
 // create a connection to the database
 const sequelize = new Sequelize('database', 'username', 'password', {
   host: 'localhost',
@@ -65,6 +79,12 @@ Player.belongsToMany(Team, { through: Score, foreignKey: 'playerId' });
 Team.belongsToMany(Player, { through: Score, foreignKey: 'teamId' });
 
 sequelize.sync();
+
+app.get('/getPlayers', (req, res) => {
+  // Retrieve playerIds from the SQLite database using db.js
+  const playerIds = db.getPlayerIds();
+  res.json(playerIds);
+});
 
 // route to get all books
 app.get('/players', (req, res) => {
@@ -323,19 +343,19 @@ app.delete('/scores/:id', (req, res) => {
       res.status(500).send(err);
     });
 });
-router.get('/getPlayers', (req, res) => {
-  // Fetch player IDs from the database
-  db.all('SELECT id FROM players', (err, rows) => {
-    if (err) {
-      console.error('Error fetching player IDs:', err);
-      res.status(500).json({ error: 'Internal Server Error' });
-    } else {
-      const playerIds = rows.map(row => ({ id: row.id }));
-      res.json(playerIds);
-    }
-  });
-});
+// router.get('/getPlayers', (req, res) => {
+//   // Fetch player IDs from the database
+//   db.all('SELECT id FROM players', (err, rows) => {
+//     if (err) {
+//       console.error('Error fetching player IDs:', err);
+//       res.status(500).json({ error: 'Internal Server Error' });
+//     } else {
+//       const playerIds = rows.map(row => ({ id: row.id }));
+//       res.json(playerIds);
+//     }
+//   });
+// });
 
-module.exports = router;
+// module.exports = router;
 const port = process.env.PORT || 3000;
 app.listen(port, () => console.log(`Listening on port ${port}...`));
