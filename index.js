@@ -66,6 +66,12 @@ Team.belongsToMany(Player, { through: Score, foreignKey: 'teamId' });
 
 sequelize.sync();
 
+app.get('/getPlayers', (req, res) => {
+  // Retrieve playerIds from the SQLite database using db.js
+  const playerIds = db.getPlayerIds();
+  res.json(playerIds);
+});
+
 // route to get all books
 app.get('/players', (req, res) => {
   Player.findAll()
@@ -323,18 +329,18 @@ app.delete('/scores/:id', (req, res) => {
       res.status(500).send(err);
     });
 });
-router.get('/getPlayers', (req, res) => {
-  // Fetch player IDs from the database
-  db.all('SELECT id FROM players', (err, rows) => {
-    if (err) {
-      console.error('Error fetching player IDs:', err);
-      res.status(500).json({ error: 'Internal Server Error' });
-    } else {
-      const playerIds = rows.map(row => ({ id: row.id }));
-      res.json(playerIds);
-    }
-  });
-});
+// router.get('/getPlayers', (req, res) => {
+//   // Fetch player IDs from the database
+//   db.all('SELECT id FROM players', (err, rows) => {
+//     if (err) {
+//       console.error('Error fetching player IDs:', err);
+//       res.status(500).json({ error: 'Internal Server Error' });
+//     } else {
+//       const playerIds = rows.map(row => ({ id: row.id }));
+//       res.json(playerIds);
+//     }
+//   });
+// });
 
 module.exports = router;
 const port = process.env.PORT || 3000;
