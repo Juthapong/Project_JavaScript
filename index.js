@@ -5,25 +5,6 @@ const app = express();
 // parse incoming requests
 app.use(express.json());
 
-
-// const router = express.Router();
-const sqlite3 = require('sqlite3').verbose();
-
-// const app = express();
-const db = new sqlite3.Database('path/to/your/database.sqlite');
-
-// app.get('/players', (req, res) => {
-//   db.all('SELECT playerId FROM players', [], (err, rows) => {
-//     if (err) {
-//       throw err;
-//     }
-//     const playerIds = rows.map(row => row.playerId);
-//     res.json(playerIds);
-//   });
-// });
-
-
-// const db = new sqlite3.Database('./Database/SQTeamFootball.sqlite');
 // create a connection to the database
 const sequelize = new Sequelize('database', 'username', 'password', {
   host: 'localhost',
@@ -75,9 +56,12 @@ const Score = sequelize.define('score', {
   },
 });
 
-Player.belongsToMany(Team, { through: Score, foreignKey: 'playerId' });
-Team.belongsToMany(Player, { through: Score, foreignKey: 'teamId' });
-
+// Player.belongsToMany(Team, { through: Score, foreignKey: 'playerId' });
+// Team.belongsToMany(Player, { through: Score, foreignKey: 'teamId' });
+Player.belongsToMany(Score, {through: Score, 
+  foreignKey: 'playerId',   // recipient
+  otherKey : 'teamId'     // recipient.
+  });
 sequelize.sync();
 
 app.get('/getPlayers', (req, res) => {
